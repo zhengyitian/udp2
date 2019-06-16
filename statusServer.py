@@ -44,7 +44,7 @@ def main():
     while True :
         r = select.select([sock],[],[],selectTime)
         if not r[0]:
-            return
+            continue
         data, addr = sock.recvfrom(recLen)
         m = json.loads(data)
         ti = m['time']
