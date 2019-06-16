@@ -41,7 +41,6 @@ sockMax = 500
 packBuffer = {}
 bufferSize = 1000
 clientCacheKey = 'clientCacheKey'
-clientCacheLockKey = 'clientCacheLockKey'
 clientServerReadKey = 'clientServerReadKey'
 currentPos = 0
 serverPos = 0
@@ -102,7 +101,7 @@ pushAhead = 100
 #work to do: check rev pack valid
 #dk = hashlib.pbkdf2_hmac('sha256', b'password', b'saltxx', 1000)
 #print time.time(),binascii.hexlify(dk)
-
+#to test with redis ,set a small key, and wait for it to be ''
 def deal_rec(l):
     global sockMap,packBuffer
     for s in l:
@@ -146,18 +145,20 @@ def resend():
     canRecPack = len(circleRange(currentPos,pushAhead))
     canRecBytes = packLimit*canRecPack
     s = re_get(clientCacheKey)
-    if not s:
-        s = ''
     s1 = ''
-    s2 = ''
-    if s<= canRecBytes:
-        s1 = s
+    if s:
+        s1 = ''
         s2 = ''
-    else:
-        s1 = s[:canRecBytes]
-        s2 = s[canRecBytes:]
-    re_set(clientCacheKey,s2)
+        if s<= canRecBytes:
+            s1 = s
+            s2 = ''
+        else:
+            s1 = s[:canRecBytes]
+            s2 = s[canRecBytes:]
+        re_set(clientCacheKey,s2)
     l = cut_text(s1,packLimit)
+    if l[-1] == '':
+        l = l[:-1]
     for one in l:
         packBuffer[currentPos] = {}
         packBuffer[currentPos] ['missTimes'] = 0
