@@ -64,10 +64,13 @@ class TOUManagerClient(TCPServer):
                 data =  stream._read_buffer
                 l = len(data)
                 d2 = yield stream.read_bytes(l-1)
-            except:
+            except StreamClosedError:
                 #send a pack to server, 
                 #close one part of the conn. if two parts all close, clean up
                 return        
+            except :
+                raise Exception
+            
             try:
                 #check how much has been write but no reply.
                 #if too much ,wait
@@ -89,10 +92,12 @@ class TOUManagerClient(TCPServer):
                 yield stream.write(d1)
                 #send a pack to server,so it knows it can write more.
                 
-            except:
+            except StreamClosedError:
                 #send a pack to server, 
                 #close one part of the conn. if two parts all close, clean up
                 return
+            except :
+                raise Exception
         
     @gen.coroutine
     def stream_to_queue(self):
