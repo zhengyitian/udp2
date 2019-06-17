@@ -1,55 +1,63 @@
-import hashlib, binascii,time,uuid,redis
+import hashlib, binascii,time,uuid
+miniSleep = 0.01
+recLen = 10240
+timeoutTime = 0.7
+maxSending = 5
 bufferSize = 1000
-conn = redis.Redis(host='localhost', port=6379, db=0)
+cacheSize = 100    
+pushAhead = 100
+
+def torRet(r):
+    e = StopIteration()
+    e.value = r
+    raise e  
+
 import re as re3
 def cut_text(text,lenth): 
     textArr = re3.findall('.{'+str(lenth)+'}', text) 
     textArr.append(text[(len(textArr)*lenth):]) 
     return textArr
 
-def re_get(k):
-    global conn
-    try:
-        return conn.get(k)
-    except:
-        conn = redis.Redis(host='localhost', port=6379, db=0)
-        return conn.get(k)        
-
-def re_set(k,s):
-    global conn
-    try:
-        conn.set(k,s)
-    except:
-        conn = redis.Redis(host='localhost', port=6379, db=0)
-        conn.set(k,s)
-def re_del(k):
-    global conn
-    try:
-        conn.delete(k)
-    except:
-        conn = redis.Redis(host='localhost', port=6379, db=0)
-        conn.delete(k)
-
-
 def makePack(s,salt):
     u = str(uuid.uuid1())
-    u2 = binascii.unhexlify(u.replace('-',''))
+    u = u.replace('-','')
+    u2 = binascii.unhexlify(u)
     s1 = u2+s
     dk = hashlib.pbkdf2_hmac('md5', s1, salt, 2)
     s2 = s1+dk
     return u,s2
+def makePack_server(s,u,salt):
+    u2 = binascii.unhexlify(u)
+    s1 = u2+s
+    dk = hashlib.pbkdf2_hmac('md5', s1, salt, 2)
+    s2 = s1+dk
+    return s2
 def checkPackValid(s,u,salt):
     if len(s)<16:
         return ''
     s1 = s[-16:]
     s2 = s[:-16]
-    uuid = binascii.unhexlify(u.replace('-',''))
+    uuid = binascii.unhexlify(u)
     dk = hashlib.pbkdf2_hmac('md5', s2, salt, 2)
     if dk != s1:
         return ''
     if s2[:16] != uuid:
         return ''
     return s2[16:]
+
+def checkPackValid_server(s,salt):
+    if len(s)<16:
+        return '',''
+    s1 = s[-16:]
+    s2 = s[:-16]
+    dk = hashlib.pbkdf2_hmac('md5', s2, salt, 2)
+    if dk != s1:
+        return '',''
+    if len(s2)<16:
+        return '',''
+    return binascii.hexlify(s2[:16]) ,s2[16:]
+
+
 def circleBig(a,b,bufferSize=bufferSize):
     if a==b:
         return False
