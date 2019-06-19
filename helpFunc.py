@@ -1,4 +1,5 @@
-import hashlib, binascii,time,uuid
+import hashlib, binascii,time,uuid,json
+import struct
 miniSleep = 0.01
 recLen = 10240
 timeoutTime = 0.7
@@ -6,12 +7,48 @@ maxSending = 5
 bufferSize = 1000
 cacheSize = 100    
 pushAhead = 100
+isLocalTest = True
+
+def isTest(self):
+    if not isLocalTest:
+        return False
+    r = random.randint(1,10)
+    if r < 2:
+        return True
+    
 
 def torRet(r):
     e = StopIteration()
     e.value = r
     raise e  
 
+class TOUMsg():
+    def __init__(self,m = {},s=''):
+        self.m_json = m
+        self.strContetn = s
+        self.length = 0
+        
+    def pack(self):
+        j = json.dumps(self.m_json)
+        jL = len(j)
+        cL = len(self.strContetn)
+        self.length = 16+jL+cL
+        return struct.pack('q',jL)+j+struct.pack('q',cL)+self.strContetn
+    
+    def unpack(self,s):
+        if len(s)<16:
+            return False,s
+        jL = struct.unpack('q',s[:8])[0]
+        if len(s)<16+jL:
+            return False,s
+        cL = struct.unpack('q',s[8+jL:16+jL])[0]
+        if len(s)<16+jL+cL:
+            return False,s
+        self.m_json = json.loads(s[8:8+jL])
+        self.strContetn = s[16+jL:16+jL+cL]
+        self.length = 16+jL+cL
+        return True,s[16+jL+cL:]
+    
 import re as re3
 def cut_text(text,lenth): 
     textArr = re3.findall('.{'+str(lenth)+'}', text) 
@@ -76,6 +113,7 @@ def circleRange(a,b,bufferSize=bufferSize):  # return [,)  same as range
         ret.append(temp)
         temp = circleAdd(temp,1)
     return ret
+
 def circleMax(l,bufferSize=bufferSize):
     ret = None
     k = l.keys()

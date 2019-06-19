@@ -15,14 +15,8 @@ class statusServer():
         self.toleranceTime = toleranceTime
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(('0.0.0.0',self.port))  
-        self.isLocalTest = isLocalTest
-    def isTest(self):
-        if not self.isLocalTest:
-            return False
-        r = random.randint(1,10)
-        if r < 3:
-            return True
-        
+
+
     @gen.coroutine
     def getClientStatus(self):
         while self.lastUpdateTime+self.toleranceTime<time.time():
@@ -43,7 +37,7 @@ class statusServer():
                 return 
             data, addr = self.sock.recvfrom(recLen)
             uuid ,ss = checkPackValid_server(data,self.salt)
-            if not uuid or self.isTest():
+            if not uuid or isTest():
                 continue
             m = json.loads(ss)
             ti = m['time']
@@ -55,9 +49,9 @@ class statusServer():
             m['time']=time.time()
             j = json.dumps(m)
             data = makePack_server(j, uuid, self.salt)
-            if self.isTest():
+            if isTest():
                 continue
-            if self.isLocalTest:
+            if isLocalTest:
                 yield gen.sleep(random.randint(200,300)/1000.0)
                 self.sock.sendto(data,addr)
 

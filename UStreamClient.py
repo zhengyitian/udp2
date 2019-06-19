@@ -10,6 +10,7 @@ class UStreamClient():
     def __init__(self):
         pass
     
+    @gen.coroutine
     def start(self):
         pass
     

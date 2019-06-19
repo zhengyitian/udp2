@@ -3,7 +3,7 @@ import uuid,time,json,random
 import select,socket,copy
 from helpFunc import *
 
-class pushServer():
+class pullServer():
     def __init__(self,port,toleranceTime,salt,isLocalTest=False):     
         self.lastTime = 0        
         self.ip = '0.0.0.0'
@@ -63,4 +63,3 @@ class pushServer():
     def doWork(self):
         yield self.sockRec()
         yield self.refreshServerStatus()
-        

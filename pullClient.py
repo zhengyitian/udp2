@@ -4,11 +4,6 @@ import struct
 from helpFunc  import *
 from tornado import gen
 
-def torRet(r):
-    e = StopIteration()
-    e.value = r
-    raise e  
-
 class pullClient():
     def __init__(self,ip,port,sockMax,salt):
         self.sockMap = {}
