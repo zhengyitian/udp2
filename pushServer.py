@@ -4,7 +4,7 @@ import select,socket,copy
 from helpFunc import *
 
 class pushServer():
-    def __init__(self,port,toleranceTime,salt,isLocalTest=False):     
+    def __init__(self,port,salt,isLocalTest=False):     
         self.lastTime = 0        
         self.ip = '0.0.0.0'
         self.port = port
@@ -16,6 +16,7 @@ class pushServer():
         self.currentPos = 0
         self.packBuffer = {}
         self.lock = False
+        self.isReading = False
 
     @gen.coroutine
     def sockRec(self):
@@ -58,9 +59,22 @@ class pushServer():
             del self.packBuffer[one]
         self.currentPos = tempPos
         self.lock = False
+        torRet(self.currentPos)
+        
+    @gen.coroutine
+    def read(self):
+        if self.isReading:
+            raise Exception
+        self.isReading = True
+        while self.readBuffer == '':
+            yield gen.sleep(miniSleep)
+        s = self.readBuffer
+        self.readBuffer = ''
+        self.isReading = False
+        torRet(s)
         
     @gen.coroutine
     def doWork(self):
         yield self.sockRec()
-        yield self.refreshServerStatus()
+        
         
