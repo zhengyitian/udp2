@@ -10,6 +10,7 @@ from helpFunc import *
 class UStreamClient():
     def __init__(self):
         ip = '0.0.0.0'
+        ip = '144.202.17.72'
         self.status = statusClient(ip,9993,5,3,'salt')
         self.status.serverStatus = {'serverPushPos':0,'serverPullPos':0}
         self.status.clientStatus = {'clientPushPos':0,'clientPullPos':0}

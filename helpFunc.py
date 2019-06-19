@@ -2,11 +2,11 @@ import hashlib, binascii,time,uuid,json
 import struct
 miniSleep = 0.01
 recLen = 10240
-timeoutTime = 0.5
+timeoutTime = 0.7
 maxSending = 3
-bufferSize = 1000
+bufferSize = 5000
 cacheSize = 100    
-pushAhead = 100
+pushAhead = 200
 isLocalTest = False
 packLimit = 900
 heartbeatLimit = 100

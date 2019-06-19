@@ -16,13 +16,13 @@ class TOUManagerBase():
         IOLoop.instance().add_callback(self.toStream)
         self.outputMap_byConn = {}
         self.outputMap_byId = {}
-        self.maxCacheSize = 100*1024*1024
+        self.maxCacheSize = 500*1024*1024
         self.outputSize = 0
         self.connMap = {}
-        self.eachConnWriteLimit = 10*1024*1000
+        self.eachConnWriteLimit = 524*1000
         self.streamReadLeft = ''
         self.inputCache = ''
-        self.inputCacheSizeLimit = 10*1024*1024
+        self.inputCacheSizeLimit = 50*1024*1024
         self.lock1 = False
         
     def addConnMap(self,conn_seq):
