@@ -6,6 +6,7 @@ from tornado.tcpserver import TCPServer
 import functools,time
 from tornado.ioloop import PeriodicCallback
 from TSreamClient2 import TStreamClient
+from UStreamClient import UStreamClient
 import json,uuid
 from helpFunc import *
 from TOUManagerBase import TOUManagerBase
@@ -13,7 +14,8 @@ from TOUManagerBase import TOUManagerBase
 class TOUManagerClient(TCPServer,TOUManagerBase):
     def __init__(self):
         TCPServer.__init__(self)
-        stream = TStreamClient('0.0.0.0',11223)    
+        #stream = TStreamClient('0.0.0.0',11223)  
+        stream = UStreamClient()
         TOUManagerBase.__init__(self,stream)     
         self.listen(9999,'0.0.0.0')
 

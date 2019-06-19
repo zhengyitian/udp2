@@ -10,7 +10,7 @@ class pullServer():
         self.port = port
         self.salt = salt
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind(('0.0.0.0',self.port))  
+        self.sock.bind(('0.0.0.0',self.port))  
         self.readBuffer = ''
         self.readBufferSize = 10*1024*1024
         self.currentPos = 0
@@ -19,7 +19,6 @@ class pullServer():
         self.isWriting = False
         self.clientPos = 0
 
-    @gen.coroutine
     def sockRec(self):
         while True:
             r = select.select([self.sock],[],[],0)
@@ -31,17 +30,15 @@ class pullServer():
                 continue
             l = circleRange(self.clientPos,self.currentPos)
             re = ''
+            pack = struct.unpack('i',ss)[0]
             if pack not in l:
                 re = '0'                
             else:
                 re = struct.pack('i',pack)+self.packBuffer[pack]['con']            
             data = makePack_server(re, uuid, self.salt)
             if isTest():
-                continue
-            if isLocalTest:
-                yield gen.sleep(random.randint(200,300)/1000.0)
-                self.sock.sendto(data,addr)
-                
+                continue            
+            self.sock.sendto(data,addr)
 
     def setClientPos(self,pos):
         if circleBig(self.clientPos,pos) == self.clientPos:
@@ -71,14 +68,14 @@ class pullServer():
             if l[-1] == '':
                 l = l[:-1]                
             for one in l:
-                self.packBuffer[self.clearPos] = {}
-                self.packBuffer[self.clearPos]['con'] = one
-                self.currentPos += 1        
+                self.packBuffer[self.currentPos] = {}
+                self.packBuffer[self.currentPos]['con'] = one
+                self.currentPos = circleAddOne(self.currentPos)        
             if s=='':
                 break
             yield gen.sleep(miniSleep)                    
         self.isWriting = False
         
-    @gen.coroutine
+
     def doWork(self):
-        yield self.sockRec()
+        self.sockRec()

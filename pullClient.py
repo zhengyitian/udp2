@@ -13,7 +13,6 @@ class pullClient():
         self.packBuffer = {}
         self.currentPos = 0
         self.serverPos = 0
-        self.clearPos = 0
         self.salt = salt
         
     def refreshServerStatus(self,pos):
@@ -26,26 +25,15 @@ class pullClient():
             self.packBuffer[one]['con'] = ''
             self.packBuffer[one]['sendingTimes'] = 0
             self.packBuffer[one]['hasGot'] = False
-        self.serverPos += pos
-        
-    def refreshClientStatus(self):
-        tempPos = self.currentPos
-        while True:
-            if not self.sockMap[tempPos]['hasGot']:
-                break
-            if circleAdd(self.clearPos,cacheSize)<tempPos:
-                break
-            tempPos = circleAdd(tempPos,1)
-        self.currentPos = tempPos     
-        
+        self.serverPos = pos
+                
     def doWork(self,serverPos):
         if len(self.sockMap)!=0:
             rr = select.select(self.sockMap.keys(),[],[],0)
             if rr[0]!=[]:
                 self.deal_rec(rr[0])
         self.deal_timeout()
-        self.refreshServerStatus(pos)
-        self.refreshClientStatus()        
+        self.refreshServerStatus(serverPos)    
         self.resend()   
     
     def resend(self):
@@ -63,22 +51,30 @@ class pullClient():
 
     @gen.coroutine
     def readBytes(self):
-        while self.clearPos==self.currentPos:
-            gen.sleep(miniSleep)
-        l = circleRange(self.clearPos,self.currentPos)      
-        ss = ''
-        for one in l:
-            ss += self.packBuffer[one]['con']
-            del packBuffer[one]
-        self.clearPos = self.currentPos
-        torRet(ss)
+        s = ''
+        while True :
+            if self.currentPos not in self.packBuffer:
+                yield gen.sleep(miniSleep)
+                continue
+            while True:        
+                if self.currentPos not in self.packBuffer:
+                    break              
+                if not self.packBuffer[self.currentPos]['hasGot']:
+                    break
+                s += self.packBuffer[self.currentPos]['con']
+                del self.packBuffer[self.currentPos]
+                self.currentPos = circleAddOne(self.currentPos)
+            if s!='':
+                break
+            yield gen.sleep(miniSleep)
+        torRet(s)     
         
     def deal_rec(self,l):
         for s in l:
             j = s.recv(recLen)
             u = self.sockMap[s]['uuid']
-            s2 = checkPackValid(j,u,salt)
-            if not s2:
+            s2 = checkPackValid(j,u,self.salt)
+            if not s2 or len(s2)<4:
                 continue        
             s.close()
             pack = self.sockMap[s]['pack']
@@ -87,7 +83,7 @@ class pullClient():
                 continue
             self.packBuffer[pack]['sendingTimes'] = self.packBuffer[pack]['sendingTimes']-1
             self.packBuffer[pack]['hasGot'] = True
-            self.packBuffer[pack]['con'] = s2
+            self.packBuffer[pack]['con'] = s2[4:]
         
     def deal_timeout(self):
         for s,v in  self.sockMap.items():
@@ -95,7 +91,7 @@ class pullClient():
             pack = v['pack']
             if ti+timeoutTime<time.time():
                 s.close()
-                del sockMap[s]
+                del self.sockMap[s]
                 if pack not in self.packBuffer:
                     continue 
                 self.packBuffer[pack]['sendingTimes'] =  self.packBuffer[pack]['sendingTimes']-1

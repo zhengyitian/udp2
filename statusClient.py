@@ -14,6 +14,7 @@ class statusClient():
         self.clientStatus = {}
         self.lastUpdateTime = 0
         self.toleranceTime = toleranceTime
+        self.sockMap = {}
         
     @gen.coroutine
     def getServerStatus(self):
@@ -31,11 +32,11 @@ class statusClient():
         for s in l:
             j = s.recv(recLen)
             u = self.sockMap[s]['uuid']
-            s2 = checkPackValid(j,u,salt)
+            s2 = checkPackValid(j,u,self.salt)
             if not s2:
                 continue                                
             s.close()
-            del sockMap[s]
+            del self.sockMap[s]
             m = json.loads(s2)
             ti = m['time']
             if ti>self.lastTime:
@@ -62,13 +63,12 @@ class statusClient():
             self.sockMap[s] = {'createTime':time.time(),'uuid':uuid}
             
     def doWork(self):
-        while True:
-            if len(self.sockMap)!=0:
-                rr = select.select(self.sockMap.keys(),[],[],0)
-                if rr[0]!=[]:
-                    self.deal_rec(rr[0])
-            self.deal_timeout()
-            self.resend()
+        if len(self.sockMap)!=0:
+            rr = select.select(self.sockMap.keys(),[],[],0)
+            if rr[0]!=[]:
+                self.deal_rec(rr[0])
+        self.deal_timeout()
+        self.resend()
     
             
         

@@ -2,14 +2,16 @@ import hashlib, binascii,time,uuid,json
 import struct
 miniSleep = 0.01
 recLen = 10240
-timeoutTime = 0.7
-maxSending = 5
+timeoutTime = 0.5
+maxSending = 3
 bufferSize = 1000
 cacheSize = 100    
 pushAhead = 100
-isLocalTest = True
+isLocalTest = False
+packLimit = 900
+heartbeatLimit = 100
 
-def isTest(self):
+def isTest():
     if not isLocalTest:
         return False
     r = random.randint(1,10)
@@ -49,11 +51,14 @@ class TOUMsg():
         self.length = 16+jL+cL
         return True,s[16+jL+cL:]
     
-import re as re3
+
 def cut_text(text,lenth): 
-    textArr = re3.findall('.{'+str(lenth)+'}', text) 
-    textArr.append(text[(len(textArr)*lenth):]) 
-    return textArr
+    l = []
+    while len(text)>lenth:
+        l.append(text[:lenth])
+        text = text[lenth:]
+    l.append(text)
+    return l
 
 def makePack(s,salt):
     u = str(uuid.uuid1())
@@ -97,18 +102,18 @@ def checkPackValid_server(s,salt):
 
 def circleBig(a,b,bufferSize=bufferSize):
     if a==b:
-        return False
+        return a
     if a>b and (a-b)<(bufferSize/2):
-        return True
+        return a
     if a<b and (b-a)>(bufferSize/2):
-        return True
-    return False
+        return a
+    return b
 
 def circleRange(a,b,bufferSize=bufferSize):  # return [,)  same as range
     temp = a
     ret = []
     while True:
-        if not circleBig(b,temp):
+        if temp== circleBig(b,temp):
             break
         ret.append(temp)
         temp = circleAdd(temp,1)
@@ -120,8 +125,7 @@ def circleMax(l,bufferSize=bufferSize):
     for i in k:
         if ret==None:
             ret = i
-        if circleBig(i,ret):
-            ret = i
+        ret = circleBig(i,ret)
     return ret
 
 

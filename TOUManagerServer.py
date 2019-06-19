@@ -1,5 +1,5 @@
 #from UStreamClient import UStreamClient
-#from UStreamServer import UStreamServer
+from UStreamServer import UStreamServer
 from tornado.ioloop import IOLoop
 from tornado import gen
 from tornado.iostream import StreamClosedError
@@ -14,7 +14,8 @@ from TOUManagerBase import TOUManagerBase
 
 class TOUManagerServer(TOUManagerBase):
     def __init__(self):
-        stream = TStreamServer('0.0.0.0',11223)    
+        #stream = TStreamServer('0.0.0.0',11223)  
+        stream = UStreamServer()
         TOUManagerBase.__init__(self,stream)
         work2  = PeriodicCallback(self.acceptConn,10)
         work2.start()              

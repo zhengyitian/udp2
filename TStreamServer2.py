@@ -65,8 +65,9 @@ class TStreamServer(TCPServer):
             sys.exit(0)
      
         torRet(d1+d2) 
-
-co = 0
+import random
+co = 0  
+g_ss = ''
 @gen.coroutine
 def doRead(t):
     global co
@@ -74,15 +75,20 @@ def doRead(t):
         yield gen.sleep(miniSleep)
         s = yield t.read()
         co += len(s)
+        global g_ss
+        g_ss+= s
+        msg = TOUMsg()
+        r,g_ss = msg.unpack(g_ss)
+        if r:
+            print 'got msg'
         print time.time(),co,s[:20]     
-        
+
 @gen.coroutine
 def doWrite(t):
     while True:
         yield gen.sleep(miniSleep)
-        yield t.write( ('###%s###'%time.time())*100  )      
-
-        
+        msg = TOUMsg({},'s'*random.randint(10000,20000))
+        yield t.write(msg.pack())     
 @gen.coroutine
 def main(t):
     yield t.start()

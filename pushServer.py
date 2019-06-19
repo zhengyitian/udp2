@@ -10,15 +10,16 @@ class pushServer():
         self.port = port
         self.salt = salt
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind(('0.0.0.0',self.port))  
+        self.sock.bind(('0.0.0.0',self.port))  
         self.readBuffer = ''
         self.readBufferSize = 10*1024*1024
         self.currentPos = 0
         self.packBuffer = {}
         self.lock = False
         self.isReading = False
-
-    @gen.coroutine
+        self.testRecord = 0
+        self.testCache = ''
+        
     def sockRec(self):
         while True:
             r = select.select([self.sock],[],[],0)
@@ -28,38 +29,29 @@ class pushServer():
             uuid ,ss = checkPackValid_server(data,self.salt)
             if not uuid or isTest():
                 continue
-            pack = struct.unpack(ss[:4])[0]
+            pack = struct.unpack('i',ss[:4])[0]
+
             con = ss[4:]
-            if circleBig(self.currentPos,pack)==self.currentPos:
+            if circleBig(self.currentPos,pack)!=pack:
+                data = makePack_server('0', uuid, self.salt)
+                self.sock.sendto(data,addr)                
                 continue
             m = {}
             m['con'] = con            
             self.packBuffer[pack]=m            
-            j = 'got'
+            j = 'gott'
             data = makePack_server(j, uuid, self.salt)
             if isTest():
                 continue
-            if isLocalTest:
-                yield gen.sleep(random.randint(200,300)/1000.0)
-                self.sock.sendto(data,addr)
+            self.sock.sendto(data,addr)
                 
-    @gen.coroutine
+    
     def refreshServerStatus(self):
-        while self.lock:
-            yield gen.sleep(miniSleep)
-        self.lock = True
-        tempPos = self.currentPos
-        while  tempPos in self.packBuffer:
-            tempPos = circleAddOne(tempPos)
-        l = circleRange(self.currentPos,tempPos)
-        for one in l:
-            while len(self.readBuffer)>self.readBufferSize:
-                yield gen.sleep(miniSleep)
-            self.readBuffer += self.packBuffer[one]['con']
-            del self.packBuffer[one]
-        self.currentPos = tempPos
-        self.lock = False
-        torRet(self.currentPos)
+        while len(self.readBuffer)<self.readBufferSize and self.currentPos in self.packBuffer:
+            self.readBuffer += self.packBuffer[self.currentPos]['con']        
+            del self.packBuffer[self.currentPos]
+            self.currentPos = circleAddOne(self.currentPos)
+        return self.currentPos
         
     @gen.coroutine
     def read(self):
@@ -73,8 +65,8 @@ class pushServer():
         self.isReading = False
         torRet(s)
         
-    @gen.coroutine
+
     def doWork(self):
-        yield self.sockRec()
+        self.sockRec()
         
         

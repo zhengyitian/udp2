@@ -14,7 +14,7 @@ class statusServer():
         self.lastUpdateTime = 0
         self.toleranceTime = toleranceTime
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind(('0.0.0.0',self.port))  
+        self.sock.bind(('0.0.0.0',self.port))  
 
 
     @gen.coroutine
@@ -29,7 +29,6 @@ class statusServer():
             yield gen.sleep(miniSleep)
         self.serverStatus = m    
         
-    @gen.coroutine
     def doWork(self):
         while True:
             r = select.select([self.sock],[],[],0)
@@ -41,7 +40,7 @@ class statusServer():
                 continue
             m = json.loads(ss)
             ti = m['time']
-            if ti>lastTime:
+            if ti>self.lastTime:
                 self.lastTime = ti
                 self.clientStatus = m   
                 self.lastUpdateTime = time.time()
@@ -51,7 +50,5 @@ class statusServer():
             data = makePack_server(j, uuid, self.salt)
             if isTest():
                 continue
-            if isLocalTest:
-                yield gen.sleep(random.randint(200,300)/1000.0)
-                self.sock.sendto(data,addr)
+            self.sock.sendto(data,addr)
 
