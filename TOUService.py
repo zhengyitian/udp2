@@ -3,8 +3,8 @@ import os,sys,time,json
 
 from collections import deque
 
-runningPath = os.path.split(__file__)[0]
-  
+runningPath = os.path.split(os.path.realpath(__file__))[0]
+print runningPath  
 mySalt = serviceSaltKey
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((serviceIp,servicePort))
