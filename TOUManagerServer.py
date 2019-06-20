@@ -65,8 +65,9 @@ if __name__ == "__main__":
         s1 = int(ar[2])
         s2 = int(ar[3])
         s3 = int(ar[4])
+        lp = [s1,s2,s3]
 
-    t = TOUManagerServer(serverListenIp,[s1,s2,s3],sk,redirTcpIp,redirTcpPort)
+    t = TOUManagerServer(serverListenIp,lp,sk,redirTcpIp,redirTcpPort)
     IOLoop.instance().add_callback(t.turnUp)    
     IOLoop.instance().start()
     
