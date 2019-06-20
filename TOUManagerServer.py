@@ -7,19 +7,21 @@ from tornado.tcpclient import TCPClient
 from tornado.tcpserver import TCPServer
 import functools,time
 from tornado.ioloop import PeriodicCallback
-from TStreamServer2 import TStreamServer
+from TStreamServer import TStreamServer
 import json,uuid
 from helpFunc import *
 from TOUManagerBase import TOUManagerBase
 
 class TOUManagerServer(TOUManagerBase):
-    def __init__(self):
+    def __init__(self,listenIp,listenPort,salt,connIp,connPort):
         #stream = TStreamServer('0.0.0.0',11223)  
-        stream = UStreamServer()
+        stream = UStreamServer(listenIp,listenPort,salt)
         TOUManagerBase.__init__(self,stream)
-        work2  = PeriodicCallback(self.acceptConn,10)
+        work2  = PeriodicCallback(self.acceptConn,miniTimer)
         work2.start()              
         self.isDoingAccept = False
+        self.ip = connIp
+        self.port = connPort
         
     @gen.coroutine
     def acceptConn(self):
@@ -30,7 +32,7 @@ class TOUManagerServer(TOUManagerBase):
             v = msg.m_json
             if v['type'] == 'conn':
                 try:
-                    stream = yield TCPClient().connect('0.0.0.0', 8080)    
+                    stream = yield TCPClient().connect(self.ip, self.port)    
                 except:
                     m = {'ret':0,'id':k}
                     msg2 = TOUMsg(m)
@@ -54,7 +56,7 @@ class TOUManagerServer(TOUManagerBase):
         self.isDoingAccept = False
                 
 if __name__ == "__main__":
-    t = TOUManagerServer()
+    t = TOUManagerServer(serverListenIp,serverListenPort,saltKey,redirTcpIp,redirTcpPort)
     IOLoop.instance().add_callback(t.turnUp)    
     IOLoop.instance().start()
     

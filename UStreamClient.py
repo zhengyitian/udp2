@@ -8,17 +8,15 @@ import time,functools,random
 from helpFunc import *
 
 class UStreamClient():
-    def __init__(self):
-        ip = '0.0.0.0'
-        ip = '144.202.17.72'
-        self.status = statusClient(ip,9993,5,3,'salt')
+    def __init__(self,ip,port,salt,pullSockNum,pushSockNum):
+        self.status = statusClient(ip,port,statusInRoadNum,statusToleranceTime,salt)
         self.status.serverStatus = {'serverPushPos':0,'serverPullPos':0}
         self.status.clientStatus = {'clientPushPos':0,'clientPullPos':0}
-        self.pull = pullClient(ip,9994,495,'salt')
-        self.push = pushClient(ip,9995,495,'salt')
+        self.pull = pullClient(ip,port+1,pullSockNum,salt)
+        self.push = pushClient(ip,port+2,pushSockNum,salt)
         IOLoop.instance().add_callback(self.keepStatus)
         IOLoop.instance().add_callback(self.doWork)   
-        w2 = PeriodicCallback(self.keepAlive,10)
+        w2 = PeriodicCallback(self.keepAlive,keepAliveTimer)
         w2.start()     
         self.startTime = time.time()
         

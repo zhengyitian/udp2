@@ -4,9 +4,9 @@ import select,socket,copy
 from helpFunc import *
 
 class statusServer():
-    def __init__(self,port,toleranceTime,salt,isLocalTest=False):     
+    def __init__(self,ip,port,toleranceTime,salt,isLocalTest=False):     
         self.lastTime = 0        
-        self.ip = '0.0.0.0'
+        self.ip = ip
         self.port = port
         self.salt = salt
         self.serverStatus = {}
@@ -14,7 +14,7 @@ class statusServer():
         self.lastUpdateTime = 0
         self.toleranceTime = toleranceTime
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(('0.0.0.0',self.port))  
+        self.sock.bind((ip,self.port))  
 
 
     @gen.coroutine

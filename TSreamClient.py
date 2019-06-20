@@ -4,16 +4,12 @@ from tornado.iostream import StreamClosedError
 from tornado.tcpclient import TCPClient
 from tornado.ioloop import PeriodicCallback
 from tornado.tcpserver import TCPServer
+import functools,time
 from helpFunc import *
 from collections import deque
-import functools,time
-ip = '0.0.0.0'
-class TStreamServer(TCPServer):
-    def __init__ (self,ip,port):
-        super(TStreamServer,self).__init__()
-        self.port = port
-        self.ip = ip
-        self.listen(self.port,self.ip)        
+
+class TStreamClient():
+    def __init__(self,ip,port,salt=''):
         self.isWrite = False
         self.isRead = False
         self.queue = deque()
@@ -26,27 +22,28 @@ class TStreamServer(TCPServer):
         self.hasWriteThisSecond = 0
         self.tripTime = 0
         self.maxWritePerSecond = 200*1024*1024
-        self.currentCacheSize = 0    
-        self.gotConn = False 
+        self.ip = ip
+        self.currentCacheSize = 0
+        self.port = port
         self.lock = False
         
     @gen.coroutine
-    def handle_stream(self, stream, address):
-        if self.gotConn :
-            return
-        ip, fileno = address
-        print("Incoming connection from " + ip)
-        self.gotConn = True
-        self.stream = stream
-
+    def start(self):
+        while True:
+            try:
+                self.stream = yield TCPClient().connect(self.ip, self.port) 
+                break
+            except:
+                pass
+                
+ 
 
     @gen.coroutine
     def write(self,s):
         while not self.stream:
-            yield gen.sleep(miniSleep)        
+            yield gen.sleep(miniSleep)
         yield self.stream.write(s)
-     
-
+       
     @gen.coroutine
     def read(self):
         while not self.stream:
@@ -63,9 +60,8 @@ class TStreamServer(TCPServer):
             print 'error'
             import sys
             sys.exit(0)
-     
         torRet(d1+d2) 
-import random
+import random        
 co = 0  
 g_ss = ''
 @gen.coroutine
@@ -95,7 +91,9 @@ def main(t):
     IOLoop.instance().add_callback(functools.partial(doRead,t))
     IOLoop.instance().add_callback(functools.partial(doWrite,t))
 
+ 
+        
 if __name__ == "__main__":
-    t = TStreamServer('0.0.0.0',12345)
+    t = TStreamClient('0.0.0.0',12345)
     IOLoop.instance().add_callback(functools.partial(main,t))
     IOLoop.instance().start()

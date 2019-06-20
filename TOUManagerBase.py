@@ -11,18 +11,18 @@ from helpFunc import *
 class TOUManagerBase():
     def __init__(self,stream):     
         self.stream = stream
-        work1  = PeriodicCallback(self.stream_to_map,10)
+        work1  = PeriodicCallback(self.stream_to_map,miniTimer)
         work1.start()
         IOLoop.instance().add_callback(self.toStream)
         self.outputMap_byConn = {}
         self.outputMap_byId = {}
-        self.maxCacheSize = 500*1024*1024
+        self.maxCacheSize = tcpManagerOutputSize
         self.outputSize = 0
         self.connMap = {}
-        self.eachConnWriteLimit = 524*1000
+        self.eachConnWriteLimit = eachConnWriteLimit
         self.streamReadLeft = ''
         self.inputCache = ''
-        self.inputCacheSizeLimit = 50*1024*1024
+        self.inputCacheSizeLimit = tcpManagerInputSize
         self.lock1 = False
         
     def addConnMap(self,conn_seq):

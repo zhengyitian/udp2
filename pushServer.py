@@ -4,15 +4,15 @@ import select,socket,copy
 from helpFunc import *
 
 class pushServer():
-    def __init__(self,port,salt,isLocalTest=False):     
+    def __init__(self,ip,port,salt,isLocalTest=False):     
         self.lastTime = 0        
-        self.ip = '0.0.0.0'
+        self.ip = ip
         self.port = port
         self.salt = salt
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(('0.0.0.0',self.port))  
+        self.sock.bind((ip,self.port))  
         self.readBuffer = ''
-        self.readBufferSize = 10*1024*1024
+        self.readBufferSize = streamBufferSize
         self.currentPos = 0
         self.packBuffer = {}
         self.lock = False

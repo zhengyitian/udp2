@@ -5,19 +5,19 @@ from tornado.tcpclient import TCPClient
 from tornado.tcpserver import TCPServer
 import functools,time
 from tornado.ioloop import PeriodicCallback
-from TSreamClient2 import TStreamClient
+from TSreamClient import TStreamClient
 from UStreamClient import UStreamClient
 import json,uuid
 from helpFunc import *
 from TOUManagerBase import TOUManagerBase
 
 class TOUManagerClient(TCPServer,TOUManagerBase):
-    def __init__(self):
+    def __init__(self,serverIp,serverPort,salt,listenIp,listenPort):
         TCPServer.__init__(self)
         #stream = TStreamClient('0.0.0.0',11223)  
-        stream = UStreamClient()
+        stream = UStreamClient(serverIp,serverPort,salt,pullMaxSock,pushMaxSock)
         TOUManagerBase.__init__(self,stream)     
-        self.listen(9999,'0.0.0.0')
+        self.listen(listenPort,listenIp)
 
     @gen.coroutine
     def handle_stream(self, stream, address):
@@ -40,7 +40,7 @@ class TOUManagerClient(TCPServer,TOUManagerBase):
         
 
 if __name__ == "__main__":
-    t = TOUManagerClient()
+    t = TOUManagerClient(serverIp,serverListenPort,saltKey,clientListenIp,clientListenPort)
     IOLoop.instance().add_callback(t.turnUp)    
     IOLoop.instance().start()
     

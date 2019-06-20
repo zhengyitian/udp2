@@ -1,15 +1,39 @@
 import hashlib, binascii,time,uuid,json
 import struct
+#for both server and client
 miniSleep = 0.01
+miniTimer = 10  # millisecond
+keepAliveTimer = 1000 # millisecond
+
 recLen = 10240
-timeoutTime = 0.7
-maxSending = 3
+timeoutTime = 0.3
 bufferSize = 5000
-cacheSize = 100    
-pushAhead = 200
-isLocalTest = False
 packLimit = 900
 heartbeatLimit = 100
+statusToleranceTime = 3
+saltKey = 'salt'
+pushAhead = 200
+tcpManagerInputSize = 100*1024*1024
+tcpManagerOutputSize = 500*1024*1024
+eachConnWriteLimit = 500*1024
+streamBufferSize = 10*1024*1024
+
+#for server
+redirTcpIp = '0.0.0.0'
+redirTcpPort = 8080
+serverListenIp = '0.0.0.0'
+serverListenPort = 9993
+
+#for client
+statusInRoadNum = 9
+maxSending = 3
+isLocalTest = False
+pushMaxSock = 1000
+pullMaxSock = 2000
+serverIp = '45.76.48.172'
+serverIp = '0.0.0.0'
+clientListenIp = '0.0.0.0'
+clientListenPort = 9999
 
 def isTest():
     if not isLocalTest:
