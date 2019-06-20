@@ -9,11 +9,11 @@ from helpFunc import *
 
 class UStreamServer():
     def __init__(self,ip,port,salt):
-        self.status = statusServer(ip,port,3,salt)
+        self.status = statusServer(ip,port[0],3,salt)
         self.status.serverStatus = {'serverPushPos':0,'serverPullPos':0}
         self.status.clientStatus = {'clientPushPos':0,'clientPullPos':0}        
-        self.pull = pullServer(ip,port+1,salt)
-        self.push = pushServer(ip,port+2,salt)
+        self.pull = pullServer(ip,port[1],salt)
+        self.push = pushServer(ip,port[2],salt)
         IOLoop.instance().add_callback(self.doWork)
         IOLoop.instance().add_callback(self.keepStatus)
         w2 = PeriodicCallback(self.keepAlive,keepAliveTimer)

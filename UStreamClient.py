@@ -9,11 +9,11 @@ from helpFunc import *
 
 class UStreamClient():
     def __init__(self,ip,port,salt,pullSockNum,pushSockNum):
-        self.status = statusClient(ip,port,statusInRoadNum,statusToleranceTime,salt)
+        self.status = statusClient(ip,port[0],statusInRoadNum,statusToleranceTime,salt)
         self.status.serverStatus = {'serverPushPos':0,'serverPullPos':0}
         self.status.clientStatus = {'clientPushPos':0,'clientPullPos':0}
-        self.pull = pullClient(ip,port+1,pullSockNum,salt)
-        self.push = pushClient(ip,port+2,pushSockNum,salt)
+        self.pull = pullClient(ip,port[1],pullSockNum,salt)
+        self.push = pushClient(ip,port[2],pushSockNum,salt)
         IOLoop.instance().add_callback(self.keepStatus)
         IOLoop.instance().add_callback(self.doWork)   
         w2 = PeriodicCallback(self.keepAlive,keepAliveTimer)
@@ -49,6 +49,7 @@ class UStreamClient():
     @gen.coroutine
     def start(self):
         yield self.status.getServerStatus()
+        print 'got conn'
     
     @gen.coroutine
     def read(self):

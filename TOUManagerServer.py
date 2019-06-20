@@ -56,7 +56,17 @@ class TOUManagerServer(TOUManagerBase):
         self.isDoingAccept = False
                 
 if __name__ == "__main__":
-    t = TOUManagerServer(serverListenIp,serverListenPort,saltKey,redirTcpIp,redirTcpPort)
+    import sys
+    ar = sys.argv
+    lp = serverListenPort
+    sk = saltKey
+    if len(ar)==5:
+        sk = ar[1]
+        s1 = int(ar[2])
+        s2 = int(ar[3])
+        s3 = int(ar[4])
+
+    t = TOUManagerServer(serverListenIp,[s1,s2,s3],sk,redirTcpIp,redirTcpPort)
     IOLoop.instance().add_callback(t.turnUp)    
     IOLoop.instance().start()
     

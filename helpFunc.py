@@ -1,7 +1,14 @@
 import hashlib, binascii,time,uuid,json
-import struct
+import struct,random,string
+import socket
+from contextlib import closing
+
 #for both server and client
-miniSleep = 0.01
+serviceIp = '0.0.0.0'
+servicePort = 9003
+serviceSaltKey = 'bigSalt'
+
+miniSleep = 0.08
 miniTimer = 10  # millisecond
 keepAliveTimer = 1000 # millisecond
 
@@ -22,7 +29,7 @@ streamBufferSize = 10*1024*1024
 redirTcpIp = '0.0.0.0'
 redirTcpPort = 8080
 serverListenIp = '0.0.0.0'
-serverListenPort = 9993
+serverListenPort = [9993,9994,9995]
 
 #for client
 statusInRoadNum = 9
@@ -34,6 +41,25 @@ serverIp = '45.76.48.172'
 serverIp = '0.0.0.0'
 clientListenIp = '0.0.0.0'
 clientListenPort = 9999
+
+def find_free_port():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_DGRAM)) as s:
+        s.bind(('', 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return int(s.getsockname()[1])
+
+def find3Ports():
+    l = []
+    while len(l)!=3:
+        i = find_free_port()
+        if i not in l:
+            l.append(i)
+    return l
+
+def randomStringDigits(stringLength=6):
+    lettersAndDigits = string.ascii_letters + string.digits
+    return ''.join(random.choice(lettersAndDigits) for i in range(stringLength))
+
 
 def isTest():
     if not isLocalTest:
